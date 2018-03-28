@@ -120,7 +120,6 @@ void Server::register_user(vector<string> tokens, int fd)
 
   User* new_user = new User(fd, tokens[1], frst_priority, sec_priority, thrd_priority);
   user_list.push_back(new_user);
-  cout<<fd<<" "<<tokens[1]<< frst_priority[0] << sec_priority[0] << thrd_priority[0]<<endl;//test
 }
 
 Server::~Server()
