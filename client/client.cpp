@@ -18,7 +18,6 @@ Client::Client(ClientSocket* cs, string uname, string fst_priority, string scnd_
 
 void Client::waitForResponse()
 {
-
     std::string buf = std::string("register_user-" )+username + std::string("-") + first_priority + std::string("-") + second_priority + std::string("-") + third_priority;
   	socket->sendData(socket->sockfd, (char*) buf.c_str());
     while(true)

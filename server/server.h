@@ -32,9 +32,10 @@ public:
   void *get_in_addr(struct sockaddr *sa);
   Server(std::string address, int port);
   void run();
+  void register_user(std::vector<std::string> tokens, int fd);
   ~Server();
 protected:
-  std::vector<User> user_list;
+  std::vector<User*> user_list;
   bool active;
   int listener;
   fd_set master;

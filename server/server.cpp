@@ -89,7 +89,7 @@ void Server::run()
                       FD_CLR(i, &master); // remove from master set
                       int index;
 	                    for(int z = 0; z <= user_list.size(); z++)	{//function
-		                       if(user_list[z].get_fd() == i)	{
+		                       if(user_list[z]->get_fd() == i)	{
 			                          index = z;
 		                       }
 	                    }
@@ -97,9 +97,12 @@ void Server::run()
 
                    }
   								 else {
-                     //to do
+                      const char delimeter= '-';
+                      vector<string> tokens = util.split(string(buf), delimeter);
   					          util.printl(buf);
-                   }
+                      if(strcmp(tokens[0].c_str(), "register_user") == 0)
+                        register_user(tokens, i);
+                  }
                } // END handle data from client
               } // END got new incoming connection
           } // END looping through file descriptors
@@ -107,6 +110,18 @@ void Server::run()
 }
 
 
+void Server::register_user(vector<string> tokens, int fd)
+{
+  Util util;
+  const char delimeter= ',';
+  vector<string> frst_priority = util.split(string(tokens[2]), delimeter);
+  vector<string> sec_priority = util.split(string(tokens[3]), delimeter);
+  vector<string> thrd_priority = util.split(string(tokens[4]), delimeter);
+
+  User* new_user = new User(fd, tokens[1], frst_priority, sec_priority, thrd_priority);
+  user_list.push_back(new_user);
+  cout<<fd<<" "<<tokens[1]<< frst_priority[0] << sec_priority[0] << thrd_priority[0]<<endl;//test
+}
 
 Server::~Server()
 {

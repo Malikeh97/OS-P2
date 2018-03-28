@@ -8,7 +8,7 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
   const char delimeter= '-';
-    Util util;
+  Util util;
   if (argc != 2) {
     util.printl("valid operation: ./client [server ip]--[server port]--[username]--[first word with priority 1, second word with priority 1,…]--[first word with priority 2, second word with priority 2, …]--[first word with priority 3, second word with priority 3, …]");
     exit(-1);
