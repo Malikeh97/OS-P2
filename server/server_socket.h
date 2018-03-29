@@ -17,6 +17,8 @@
 #include "network_exception.h"
 #include <sys/types.h>
 #include <netdb.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 #define MAXDATASIZE 256
 #define SERVERCAPACITY 200

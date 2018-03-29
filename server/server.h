@@ -3,8 +3,9 @@
 
 #include <sys/select.h>
 #include <iostream>
-
 #include "server_socket.h"
+#include <iostream>
+#include <fstream>
 
 class User {
   public:
@@ -14,11 +15,14 @@ class User {
       username = uname;
       first_priority = frst_priority;
       second_priority = sec_priority;
-      thrd_priority = third_priority;
+      third_priority = thrd_priority;
     }
     ~User(){}
     int get_fd(){return fd;}
-
+    std::string get_username(){return username;}
+    std::vector<std::string> get_first(){return first_priority;}
+    std::vector<std::string> get_second(){return second_priority;}
+    std::vector<std::string> get_third(){return third_priority;}
   private:
     int fd;
     std::string username;
@@ -30,11 +34,16 @@ class User {
 class Server {
 public:
   void *get_in_addr(struct sockaddr *sa);
-  Server(std::string address, int port);
+  Server(std::string address, int port, std::string addr, int num);
   void run();
   void register_user(std::vector<std::string> tokens, int fd);
+  void write_in_pipe(char* myfifo, std::vector<User*> user_list);
+  char* read_from_pipe(char * myfifo);
   ~Server();
 protected:
+  std::vector<std::string> batched_req;
+  std::string root_folder;
+  int worker_num;
   std::vector<User*> user_list;
   bool active;
   int listener;
