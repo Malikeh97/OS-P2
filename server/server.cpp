@@ -34,12 +34,6 @@ void Server::run()
   mkfifo(myfifo, 0666);
 
   ofstream log_ofs;
-  string log_dir = "logs.txt";
-  log_ofs.open (log_dir.c_str());
-  if(!log_ofs.is_open()) {
-    cout << "Unable to open file" << endl;
-    return;
-  }
 
 
   Util util;
@@ -62,10 +56,14 @@ void Server::run()
   pid_t log_pid = fork();
 
   if (log_pid == 0) {
+     log_ofs.open ( "logs.txt", fstream::out);
+     if(!log_ofs.is_open()) {
+    	cout << "Unable to open file" << endl;
+    	return;
+     }
 
       while(true) {
-                string new_req = string(read_from_pipe(myfifo));
-		cout<<"hello"<<endl;
+                string new_req = read_from_pipe(myfifo);
  		if(strcmp(new_req.c_str(), "") != 0) {
 			batched_req.push_back(new_req);
 		}
@@ -80,6 +78,7 @@ void Server::run()
                 }
 
       }
+      log_ofs.close();
   }
 
   else if (log_pid > 0) {
@@ -143,7 +142,6 @@ void Server::run()
                           if(strcmp(tokens[0].c_str(), "register_user") == 0) {
                             register_user(tokens, i);
                             write_in_pipe(myfifo, user_list);
-			    cout<<"hello2"<<endl;
                           }
                       }
                    } // END handle data from client
@@ -180,19 +178,18 @@ void Server::write_in_pipe(char* myfifo, vector<User*> user_list)
 
 }
 
-char* Server::read_from_pipe(char * myfifo)//to be changed
-{
+string Server::read_from_pipe(char * myfifo){
   Util util;
   int fd = open(myfifo, O_RDONLY);
-  if(fd < 0)
-  {
+  if(fd < 0)   {
     util.printl("#Error in reading the fifo file\n");
     return NULL;
   }
   char arr1[2048];
-  read(fd, arr1, sizeof(arr1));
+  read(fd, arr1, 2048);
   close(fd);
-  return arr1;
+  string res = arr1;
+  return res;
 }
 
 void Server::register_user(vector<string> tokens, int fd)

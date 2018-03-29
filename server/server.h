@@ -38,7 +38,7 @@ public:
   void run();
   void register_user(std::vector<std::string> tokens, int fd);
   void write_in_pipe(char* myfifo, std::vector<User*> user_list);
-  char* read_from_pipe(char * myfifo);
+  std::string read_from_pipe(char * myfifo);
   ~Server();
 protected:
   std::vector<std::string> batched_req;
