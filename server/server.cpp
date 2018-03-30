@@ -33,8 +33,6 @@ void Server::run()
   char* myfifo = "./myfifo";
   mkfifo(myfifo, 0666);
 
-  ofstream log_ofs;
-
 
   Util util;
   int newfd;
@@ -55,31 +53,7 @@ void Server::run()
   pid_t log_pid = fork();
 
   if (log_pid == 0) {
-
-       while(true) {
-         string new_req = read_from_pipe(myfifo);
-          if(strcmp(new_req.c_str(), "") != 0) {
-             batched_req.push_back(new_req);
-        }
-         string log_req;
-         if(batched_req.size() == 2) {//change
-             for(i = 0 ; i < 2;i++) {
-              log_req += batched_req[i];
-             }
-             cout << log_req;
-             log_ofs.open ( "logs.txt", fstream::out | fstream::app);
-             if(!log_ofs.is_open()) {
-            	cout << "Unable to open file" << endl;
-            	return;
-             }
-             log_ofs << log_req;
-             log_req = "";
-             batched_req.clear();
-             log_ofs.close();
-         }
-
-     }
-
+    log_process(myfifo);
   }
 
   else if (log_pid > 0) {
@@ -202,6 +176,33 @@ void Server::register_user(vector<string> tokens, int fd)
   vector<string> thrd_priority = util.split(string(tokens[4]), delimeter);
   User* new_user = new User(fd, tokens[1], frst_priority, sec_priority, thrd_priority);
   user_list.push_back(new_user);
+}
+
+void Server::log_process(char* myfifo)
+{
+  ofstream log_ofs;
+  while(true) {
+    string new_req = read_from_pipe(myfifo);
+    if(strcmp(new_req.c_str(), "") != 0) {
+        batched_req.push_back(new_req);
+    }
+    string log_req;
+    if(batched_req.size() == 5) {//change
+      for(int i = 0 ; i < 5; i++) {
+        log_req += batched_req[i];
+      }
+      log_ofs.open ( "logs.txt", fstream::out | fstream::app);
+      if(!log_ofs.is_open()) {
+        cout << "Unable to open file" << endl;
+        return;
+      }
+      log_ofs << log_req;
+      log_req = "";
+      batched_req.clear();
+      log_ofs.close();
+    }
+
+  }
 }
 
 Server::~Server()
