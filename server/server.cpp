@@ -52,33 +52,34 @@ void Server::run()
   struct addrinfo hints, *ai, *p;
 
   memset(&hints, 0, sizeof hints);
-
   pid_t log_pid = fork();
 
   if (log_pid == 0) {
-     log_ofs.open ( "logs.txt", fstream::out);
-     if(!log_ofs.is_open()) {
-    	cout << "Unable to open file" << endl;
-    	return;
+
+       while(true) {
+         string new_req = read_from_pipe(myfifo);
+          if(strcmp(new_req.c_str(), "") != 0) {
+             batched_req.push_back(new_req);
+        }
+         string log_req;
+         if(batched_req.size() == 2) {//change
+             for(i = 0 ; i < 2;i++) {
+              log_req += batched_req[i];
+             }
+             cout << log_req;
+             log_ofs.open ( "logs.txt", fstream::out | fstream::app);
+             if(!log_ofs.is_open()) {
+            	cout << "Unable to open file" << endl;
+            	return;
+             }
+             log_ofs << log_req;
+             log_req = "";
+             batched_req.clear();
+             log_ofs.close();
+         }
+
      }
 
-      while(true) {
-                string new_req = read_from_pipe(myfifo);
- 		if(strcmp(new_req.c_str(), "") != 0) {
-			batched_req.push_back(new_req);
-		}
-
-        	string log_req;
-        	if(batched_req.size() == 2) {//change
-         	   for(i = 0 ; i < 2;i++) {
-            	     log_req += batched_req[i];
-           	     log_ofs << log_req;
-                   }
-            	   batched_req.clear();
-                }
-
-      }
-      log_ofs.close();
   }
 
   else if (log_pid > 0) {
