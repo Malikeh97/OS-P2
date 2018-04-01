@@ -39,6 +39,10 @@ class Worker {
     Worker(int index) {
       Util util;
       this->pid = fork();
+      if(pid < 0) {
+        std::cout << "#Error in creating child process\n";
+        exit(-1);
+      }
       std::string head_str = "./worker_fifo_";
       this->worker_fifo = (char*) (head_str + util.itos(index)).c_str();
       mkfifo(this->worker_fifo, 0666);
@@ -46,12 +50,19 @@ class Worker {
       status = IDLE;
     }
     ~Worker();
-    void set_req(User* cur_req) { this->cur_req = cur_req;}
-    void change_status() {status = (status == IDLE) ? BUSY : IDLE;}
+    void set_req(User* cur_req, int cur_req_index) {
+      this->cur_req = cur_req;
+      this->cur_req_index = cur_req_index;
+      status = BUSY;
+     }
+    void change_status() {status = (status == IDLE) ? BUSY : IDLE; }
+    pid_t get_id() { return pid; }
+    pid_t get_state() { return status; }
   private:
     pid_t pid;
     char* worker_fifo;
     User* cur_req;
+    int cur_req_index;
     int status;
 };
 
@@ -64,8 +75,10 @@ public:
   void write_in_pipe(char* myfifo, std::vector<User*> user_list);
   std::string read_from_pipe(char * myfifo);
   void log_process(char* myfifo);
+  void set_req(User* new_req) { req_queue.push_back(new_req);}
   ~Server();
 protected:
+  std::vector<User*> req_queue;
   std::vector<std::string> batched_req;
   std::string root_folder;
   int worker_num;

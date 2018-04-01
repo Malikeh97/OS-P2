@@ -51,18 +51,29 @@ void Server::run()
   memset(&hints, 0, sizeof hints);
   pid_t log_pid = fork();
 
-  for(int i = 0; i < worker_num; i++) {
-    Worker* new_worker = new Worker(i);
-    worker_list.push_back(new_worker);
-  }
-
 
   if (log_pid == 0) {
     log_process(myfifo);
   }
 
   else if (log_pid > 0) {
+      for(int k = 0; k < worker_num; k++) {
+        Worker* new_worker = new Worker(k);
+        worker_list.push_back(new_worker);
+        if(worker_list[k]->get_id() == 0) {
+          cout << getpid() <<"create"<< endl;//test
+          break;
+        }
+      }
       while(active){
+              for(int z = 0; z < worker_list.size(); z++){
+                if(worker_list[z]->get_id() == 0) {
+                  if(worker_list[z]->get_state() == BUSY ) {
+                      cout << getpid() << "busy"<< endl;//test
+                      //to do
+                  }
+                }
+              }
               read_fds = master;
               if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
                   util.printl("select");
@@ -122,6 +133,14 @@ void Server::run()
                           if(strcmp(tokens[0].c_str(), "register_user") == 0) {
                             register_user(tokens, i);
                             write_in_pipe(myfifo, user_list);
+                            for(int j = 0; j < worker_list.size(); j++) {
+                              if(worker_list[j]->get_id() == 0) {
+                                if(worker_list[j]->get_state() == IDLE) {
+                                  worker_list[j]->set_req(user_list[user_list.size()-1], user_list.size()-1);
+                                  break;
+                                }
+                              }
+                            }
                           }
                       }
                    } // END handle data from client
