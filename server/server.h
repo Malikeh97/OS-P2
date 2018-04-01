@@ -7,6 +7,8 @@
 #include <iostream>
 #include <fstream>
 
+#define IDLE  0
+#define BUSY  1
 
 class User {
   public:
@@ -32,6 +34,27 @@ class User {
     std::vector<std::string> third_priority;
 };
 
+class Worker {
+  public:
+    Worker(int index) {
+      Util util;
+      this->pid = fork();
+      std::string head_str = "./worker_fifo_";
+      this->worker_fifo = (char*) (head_str + util.itos(index)).c_str();
+      mkfifo(this->worker_fifo, 0666);
+      cur_req = NULL;
+      status = IDLE;
+    }
+    ~Worker();
+    void set_req(User* cur_req) { this->cur_req = cur_req;}
+    void change_status() {status = (status == IDLE) ? BUSY : IDLE;}
+  private:
+    pid_t pid;
+    char* worker_fifo;
+    User* cur_req;
+    int status;
+};
+
 class Server {
 public:
   void *get_in_addr(struct sockaddr *sa);
@@ -46,6 +69,7 @@ protected:
   std::vector<std::string> batched_req;
   std::string root_folder;
   int worker_num;
+  std::vector<Worker*> worker_list;
   std::vector<User*> user_list;
   bool active;
   int listener;

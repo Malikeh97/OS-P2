@@ -33,7 +33,6 @@ void Server::run()
   char* myfifo = "./myfifo";
   mkfifo(myfifo, 0666);
 
-
   Util util;
   int newfd;
   struct sockaddr_storage remoteaddr;
@@ -51,6 +50,12 @@ void Server::run()
 
   memset(&hints, 0, sizeof hints);
   pid_t log_pid = fork();
+
+  for(int i = 0; i < worker_num; i++) {
+    Worker* new_worker = new Worker(i);
+    worker_list.push_back(new_worker);
+  }
+
 
   if (log_pid == 0) {
     log_process(myfifo);
