@@ -1,5 +1,6 @@
 #ifndef _SERVER_H
 #define _SERVER_H
+//close pipe yadet bashe
 
 #include <sys/select.h>
 #include <iostream>
@@ -43,10 +44,13 @@ class Worker {
         std::cout << "#Error in creating child process\n";
         exit(-1);
       }
-      std::string head_str = "./worker_fifo_";
-      this->worker_fifo = (char*) (head_str + util.itos(index)).c_str();
-      mkfifo(this->worker_fifo, 0666);
+      unnamed_pipe = pipe(pipefds);
+      if (unnamed_pipe != 0) {
+        std::cout << "worker pipe creation error\n";
+        exit(-1);
+      }
       cur_req = NULL;
+      search_req = "\0";
       status = IDLE;
     }
     ~Worker();
@@ -59,9 +63,11 @@ class Worker {
     pid_t get_id() { return pid; }
     pid_t get_state() { return status; }
   private:
+    int unnamed_pipe;
     pid_t pid;
-    char* worker_fifo;
+    int pipefds[2];
     User* cur_req;
+    std::string search_req;
     int cur_req_index;
     int status;
 };

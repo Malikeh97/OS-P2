@@ -1,7 +1,6 @@
 #include "server.h"
 
 using namespace std;
-
 void* Server::get_in_addr(struct sockaddr *sa)
 {
     if (sa->sa_family == AF_INET) {
@@ -61,19 +60,29 @@ void Server::run()
         Worker* new_worker = new Worker(k);
         worker_list.push_back(new_worker);
         if(worker_list[k]->get_id() == 0) {
-          cout << getpid() <<"create"<< endl;//test
+          //to do
           break;
         }
       }
       while(active){
-              for(int z = 0; z < worker_list.size(); z++){
-                if(worker_list[z]->get_id() == 0) {
-                  if(worker_list[z]->get_state() == BUSY ) {
-                      cout << getpid() << "busy"<< endl;//test
-                      //to do
-                  }
-                }
-              }
+
+              //bool is_main = true;
+              // for(int z = 0; z < worker_list.size(); z++){
+              //   if(worker_list[z]->get_id() == 0) {
+              //     if(worker_list[z]->get_state() == BUSY ) {
+              //         cout << getpid() << "busy"<< endl;//test
+              //   worker_list.push_back(new_worker);
+              //         //to do
+              //     }
+              //     break;
+              //   }
+              // }
+
+              // for(int z = 0; z < worker_list.size(); z++){
+              //   is_main = is_main && worker_list[z]->get_id();
+              // }
+
+            //  if(is_main) {
               read_fds = master;
               if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
                   util.printl("select");
@@ -81,7 +90,9 @@ void Server::run()
               }
               for(i = 0; i <= fdmax; i++) {
                   if (FD_ISSET(i, &read_fds)) {
-                      if (i == listener) {
+                      if (i == listener /* && is_main*/) {
+
+
                           addrlen = sizeof remoteaddr;
                           newfd = accept(listener,
                               (struct sockaddr *)&remoteaddr,
@@ -106,7 +117,7 @@ void Server::run()
                       else	{
                       char buf[MAXDATASIZE];
                       memset (buf,'\0',MAXDATASIZE);
-                      if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
+                      if (/*is_main &&*/ (nbytes = recv(i, buf, sizeof buf, 0)) <= 0 ) {
                           // got error or connection closed by client
                           if (nbytes == 0) {
                               util.prints("selectserver: socket ");
@@ -130,22 +141,22 @@ void Server::run()
                        else {
                           const char delimeter= '-';
                           vector<string> tokens = util.split(string(buf), delimeter);
+
                           if(strcmp(tokens[0].c_str(), "register_user") == 0) {
                             register_user(tokens, i);
                             write_in_pipe(myfifo, user_list);
-                            for(int j = 0; j < worker_list.size(); j++) {
-                              if(worker_list[j]->get_id() == 0) {
-                                if(worker_list[j]->get_state() == IDLE) {
-                                  worker_list[j]->set_req(user_list[user_list.size()-1], user_list.size()-1);
-                                  break;
-                                }
-                              }
-                            }
+                            // for(int j = 0; j < worker_list.size(); j++) {
+                            //     if(worker_list[j]->get_state() == IDLE) {
+                            //       worker_list[j]->set_req(user_list[user_list.size()-1], user_list.size()-1);
+                            //       break;
+                            //     }
+                            // }
                           }
                       }
                    } // END handle data from client
                   } // END got new incoming connection
               } // END looping through file descriptors
+            //}//END is_main
           } // END for(;;)--and you thought it would never end!
     }
 
@@ -211,8 +222,8 @@ void Server::log_process(char* myfifo)
         batched_req.push_back(new_req);
     }
     string log_req;
-    if(batched_req.size() == 5) {//change
-      for(int i = 0 ; i < 5; i++) {
+    if(batched_req.size() == 1) {//change
+      for(int i = 0 ; i < 1; i++) {
         log_req += batched_req[i];
       }
       log_ofs.open ( "logs.txt", fstream::out | fstream::app);
