@@ -59,30 +59,34 @@ void Server::run()
       for(int k = 0; k < worker_num; k++) {
         Worker* new_worker = new Worker(k);
         worker_list.push_back(new_worker);
-        if(worker_list[k]->get_id() == 0) {
-          //to do
+        pid_t pid = fork();
+        if(pid < 0) {
+          std::cout << "#Error in creating child process\n";
+          exit(-1);
+        }
+        worker_list.back()->set_pid(pid);
+        if(worker_list.back()->get_id() == 0) {
           break;
         }
       }
       while(active){
 
-              //bool is_main = true;
-              // for(int z = 0; z < worker_list.size(); z++){
-              //   if(worker_list[z]->get_id() == 0) {
-              //     if(worker_list[z]->get_state() == BUSY ) {
-              //         cout << getpid() << "busy"<< endl;//test
-              //   worker_list.push_back(new_worker);
-              //         //to do
-              //     }
-              //     break;
-              //   }
-              // }
+        bool is_main = true;
+          for(int z = 0; z < worker_list.size(); z++){
+            if(worker_list[z]->get_id() == 0) {
+              char buffer[MAXDATASIZE] = {0};
+              read(worker_list[z]->get_pipefds()[0], buffer, MAXDATASIZE);
+              cout<<"2"<<buffer<<endl;
+              //to do
+              break;
+            }
+          }
 
-              // for(int z = 0; z < worker_list.size(); z++){
-              //   is_main = is_main && worker_list[z]->get_id();
-              // }
+          for(int z = 0; z < worker_list.size(); z++){
+            is_main = is_main && worker_list[z]->get_id();
+          }
 
-            //  if(is_main) {
+           if(is_main) {
               read_fds = master;
               if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
                   util.printl("select");
@@ -145,18 +149,23 @@ void Server::run()
                           if(strcmp(tokens[0].c_str(), "register_user") == 0) {
                             register_user(tokens, i);
                             write_in_pipe(myfifo, user_list);
-                            // for(int j = 0; j < worker_list.size(); j++) {
-                            //     if(worker_list[j]->get_state() == IDLE) {
-                            //       worker_list[j]->set_req(user_list[user_list.size()-1], user_list.size()-1);
-                            //       break;
-                            //     }
-                            // }
+                            bool req_assigned = false;
+                            for(int j = 0; j < worker_list.size(); j++) {
+                                if(worker_list[j]->get_state() == IDLE) {
+                                  req_assigned = true;
+                                  write(worker_list[j]->get_pipefds()[1], buf, strlen(buf));
+                                  worker_list[j]->change_status();
+                                  break;
+                                }
+                            }
+                            if(!req_assigned)
+                                req_queue.push_back(string(buf));
                           }
                       }
                    } // END handle data from client
                   } // END got new incoming connection
               } // END looping through file descriptors
-            //}//END is_main
+            }//END is_main
           } // END for(;;)--and you thought it would never end!
     }
 

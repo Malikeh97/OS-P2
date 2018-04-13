@@ -39,11 +39,11 @@ class Worker {
   public:
     Worker(int index) {
       Util util;
-      this->pid = fork();
-      if(pid < 0) {
-        std::cout << "#Error in creating child process\n";
-        exit(-1);
-      }
+      //this->pid = f_pid;
+      // if(pid < 0) {
+      //   std::cout << "#Error in creating child process\n";
+      //   exit(-1);
+      // }
       unnamed_pipe = pipe(pipefds);
       if (unnamed_pipe != 0) {
         std::cout << "worker pipe creation error\n";
@@ -62,6 +62,8 @@ class Worker {
     void change_status() {status = (status == IDLE) ? BUSY : IDLE; }
     pid_t get_id() { return pid; }
     pid_t get_state() { return status; }
+    int* get_pipefds() { return pipefds; }
+    void set_pid(pid_t new_pid) { pid = new_pid; }
   private:
     int unnamed_pipe;
     pid_t pid;
@@ -81,10 +83,10 @@ public:
   void write_in_pipe(char* myfifo, std::vector<User*> user_list);
   std::string read_from_pipe(char * myfifo);
   void log_process(char* myfifo);
-  void set_req(User* new_req) { req_queue.push_back(new_req);}
+  //void set_req(User* new_req) { req_queue.push_back(new_req);}
   ~Server();
 protected:
-  std::vector<User*> req_queue;
+  std::vector<std::string> req_queue;
   std::vector<std::string> batched_req;
   std::string root_folder;
   int worker_num;
