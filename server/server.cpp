@@ -12,7 +12,6 @@ void* Server::get_in_addr(struct sockaddr *sa)
 
 Server::Server(string address, int port, string addr, int num)
 {
-
   Util util;
   FD_ZERO(&master);    // clear the master and temp sets
   FD_ZERO(&read_fds);
@@ -76,7 +75,7 @@ void Server::run()
             if(worker_list[z]->get_id() == 0) {
               char buffer[MAXDATASIZE] = {0};
               read(worker_list[z]->get_pipefds()[0], buffer, MAXDATASIZE);
-              cout<<"2"<<buffer<<endl;
+              worker_list[z]->set_user(string(buffer));
               //to do
               break;
             }

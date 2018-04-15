@@ -50,7 +50,6 @@ class Worker {
         exit(-1);
       }
       cur_req = NULL;
-      search_req = "\0";
       status = IDLE;
     }
     ~Worker();
@@ -64,12 +63,22 @@ class Worker {
     pid_t get_state() { return status; }
     int* get_pipefds() { return pipefds; }
     void set_pid(pid_t new_pid) { pid = new_pid; }
+    void set_user(std::string search_req) {
+      Util util;
+      char delimeter = '-';
+      std::vector<std::string> tokens = util.split(search_req, delimeter);
+      delimeter = ',';
+      std::vector<std::string> frst_priority = util.split(std::string(tokens[2]), delimeter);
+      std::vector<std::string> sec_priority = util.split(std::string(tokens[3]), delimeter);
+      std::vector<std::string> thrd_priority = util.split(std::string(tokens[4]), delimeter);
+      cur_req = new User(0, tokens[1], frst_priority, sec_priority, thrd_priority);
+    }
   private:
     int unnamed_pipe;
     pid_t pid;
     int pipefds[2];
     User* cur_req;
-    std::string search_req;
+
     int cur_req_index;
     int status;
 };
