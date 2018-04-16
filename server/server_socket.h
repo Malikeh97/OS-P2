@@ -20,7 +20,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#define MAXDATASIZE 256
+#define MAXDATASIZE 1000000
 #define SERVERCAPACITY 200
 #define STDIN 0
 #define CONNECTION_BACKLOG 10

@@ -104,6 +104,7 @@ double Worker::calculate_point(string dir) {
   vector<FileInfo> calculated_points;
   for (int i = 0; i < file_list.size(); i++) {
      char buffer[MAXDATASIZE] = {0};
+     memset (buffer,'\0',MAXDATASIZE);
      read(pipefd_list[i][0], buffer, MAXDATASIZE);
      Util util;
      const char delimeter= '+';
