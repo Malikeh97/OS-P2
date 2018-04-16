@@ -29,6 +29,7 @@ class Worker {
     int* get_pipefds() { return pipefds; }
     void set_pid(pid_t new_pid) { pid = new_pid; }
     void set_user(std::string search_req);
+    User* get_user() { return cur_req; };
   private:
     int unnamed_pipe;
     pid_t pid;

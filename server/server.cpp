@@ -60,7 +60,7 @@ void Server::run()
         worker_list.push_back(new_worker);
         pid_t pid = fork();
         if(pid < 0) {
-          std::cout << "#Error in creating child process\n";
+          std::cout << "Err::in creating child process\n";
           exit(-1);
         }
         worker_list.back()->set_pid(pid);
@@ -77,7 +77,15 @@ void Server::run()
               read(worker_list[z]->get_pipefds()[0], buffer, MAXDATASIZE);
               worker_list[z]->set_user(string(buffer));
               string total_point = worker_list[z]->traverse_folders(root_folder);
-              cout<<total_point<<endl;
+              ofstream calculation_fstream;
+              string file_name = worker_list[z]->get_user()->get_username() + ".txt";
+              calculation_fstream.open ( file_name.c_str(), fstream::out | fstream::app);
+              if(!calculation_fstream.is_open()) {
+                    cout << "Err::Unable to open file" << endl;
+                    return;
+              }
+              calculation_fstream << total_point;
+              calculation_fstream.close();
               break;
             }
           }
