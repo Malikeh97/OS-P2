@@ -77,6 +77,7 @@ void Server::run()
               read(worker_list[z]->get_pipefds()[0], buffer, MAXDATASIZE);
               worker_list[z]->set_user(string(buffer));
               string total_point = worker_list[z]->traverse_folders(root_folder);
+              cout<<total_point<<endl;
               break;
             }
           }
@@ -230,8 +231,8 @@ void Server::log_process(char* myfifo)
         batched_req.push_back(new_req);
     }
     string log_req;
-    if(batched_req.size() == 1) {//change
-      for(int i = 0 ; i < 1; i++) {
+    if(batched_req.size() == 5) {//change
+      for(int i = 0 ; i < 5; i++) {
         log_req += batched_req[i];
       }
       log_ofs.open ( "logs.txt", fstream::out | fstream::app);

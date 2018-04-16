@@ -34,46 +34,7 @@ void Worker::set_req(User* cur_req, int cur_req_index) {
    }
    closedir (dir);
  }
-//   string Worker::find_min(vector<vector<string> > &str) {
-//     double min = 1000;
-//     int index = -1;
-//     for (int i = 0; i < str.size(); i++) {
-//       if (str[i].size() == 0)
-//         continue;
-//       string s = str[i][0];
-//       double score = atof(s.substr(s.find_last_of(" ") + 1).c_str());
-//       if (score < min) {
-//         min = score;
-//         index = i;
-//      }
-//      }
-//   if (index != -1) {
-//   string s = str[index][0];
-//   str[index].erase(str[index].begin());
-//   return s;
-//   }
-//   return "--- MIN NOT FOUND!!!";
-//   }
-//
-//   std::string Worker::pack_msg(std::vector<string> points) {
-//     Util util;
-//     std::vector< std::vector<std::string> > tokenized;
-//     std::string res = "";
-//     int counter = 0;
-//     for (int i = 0; i < points.size(); i++) {
-//       std::vector<std::string> splitted = util.split(l[i], '\\');
-//       tokenized.push_back(splitted);
-//       counter += splitted.size();
-//     }
-//     for (int i = 0; i < counter; i++) {
-//       std::string min = find_min(tokenized);
-//       if (i == 0)
-//         res = min;
-//       else
-//         res += "\\" + min;
-//     }
-//     return res;
-// }
+
 double Worker::calculate_point(string dir) {
    ifstream my_file(dir);
    int total_point = 0;
@@ -113,6 +74,7 @@ double Worker::calculate_point(string dir) {
    return  (double) total_point/2;
  }
 
+
  string Worker::traverse_folders(string root_folder) {//traverse through folders if no file exists, if so calculate the total point of the file
     Util util;
     vector<string> file_list;
@@ -129,7 +91,7 @@ double Worker::calculate_point(string dir) {
         string path = root_folder + "/" + file_list[i];
         if(file_list[i].find(".txt") != -1) {//if file detected
           total_point = calculate_point(path);
-          tmp = path + ":" + util.itos(total_point) ;
+          tmp = path + ":" + util.itos(total_point);
         }
         else {//if folder detected recursively traverse through files
           tmp = traverse_folders(path);
@@ -139,20 +101,32 @@ double Worker::calculate_point(string dir) {
       }
     }
 
-  vector<File> calculated_points;
+  vector<FileInfo> calculated_points;
   for (int i = 0; i < file_list.size(); i++) {
      char buffer[MAXDATASIZE] = {0};
      read(pipefd_list[i][0], buffer, MAXDATASIZE);
      Util util;
-     const char delimeter= ':';
-     struct File file_point;
+     const char delimeter= '+';
+     struct FileInfo file_point;
      vector<string> tempo = util.split(string(buffer), delimeter);
-     file_point.path = tempo[0];
-     file_point.total_point = util.mystoi(tempo[1]);
-     calculated_points.push_back(file_point);
+     for(int j = 0; j < tempo.size(); j++) {
+       const char delim= ':';
+       vector<string> tmp = util.split(string(tempo[j]), delim);
+       file_point.path = tmp[0];
+       file_point.total_point = util.mystoi(tmp[1]);
+       calculated_points.push_back(file_point);
+     }
    }
-   // return concat_list(points);
-   return "hello";
+   util.mergeSort(calculated_points, 0, calculated_points.size()-1);
+   string final_concat;
+   for(int i = 0; i < calculated_points.size(); i++) {
+     // if(i == calculated_points.size()-1) {
+     //   final_concat = calculated_points[i].path + ":" + util.itos(calculated_points[i].total_point);
+     //   break;
+     // }
+     final_concat +=  calculated_points[i].path + ":" + util.itos(calculated_points[i].total_point) + "+";
+   }
+   return final_concat;
  }
 
  void Worker::set_user(string search_req) {//tokenize client info and save them in the assigned worker
