@@ -7,4 +7,5 @@ std::vector<std::string> sec_priority, std::vector<std::string> thrd_priority){
   first_priority = frst_priority;
   second_priority = sec_priority;
   third_priority = thrd_priority;
+  is_deleted = false;
 }

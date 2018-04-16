@@ -19,6 +19,10 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <stdlib.h>
+
+
+
 
 #define MAXDATASIZE 1000000
 #define SERVERCAPACITY 200

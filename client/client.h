@@ -1,11 +1,15 @@
 #ifndef __CLIENT__
 #define __CLIENT__
+
 #include <iostream>
 #include <cstring>
 #include <vector>
 #include <cstdlib>
 #include "client_socket.h"
 #include "util.h"
+
+#define MAXDATASIZE 1000000
+
 class BAD_COMMAND_EXCEPTION{};
 class Client{
     public:

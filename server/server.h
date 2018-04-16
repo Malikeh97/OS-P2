@@ -11,11 +11,14 @@
 #include "user.h"
 #include "worker.h"
 
+
 #define IDLE  0
 #define BUSY  1
 
 class Server {
 public:
+  void getInput(char *buf);
+  void removeEnter(char *buf);
   void *get_in_addr(struct sockaddr *sa);
   Server(std::string address, int port, std::string addr, int num);
   void run();
@@ -23,6 +26,7 @@ public:
   void write_in_pipe(char* myfifo, std::vector<User*> user_list);
   std::string read_from_pipe(char * myfifo);
   void log_process(char* myfifo);
+  void sendData(int sockfd, char* message);
   //void set_req(User* new_req) { req_queue.push_back(new_req);}
   ~Server();
 protected:

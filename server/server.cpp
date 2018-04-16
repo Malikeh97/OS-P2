@@ -103,8 +103,6 @@ void Server::run()
               for(i = 0; i <= fdmax; i++) {
                   if (FD_ISSET(i, &read_fds)) {
                       if (i == listener /* && is_main*/) {
-
-
                           addrlen = sizeof remoteaddr;
                           newfd = accept(listener,
                               (struct sockaddr *)&remoteaddr,
@@ -126,10 +124,26 @@ void Server::run()
                               util.printl(util.itos(newfd).c_str());
                           }
                       }
+
+                      else if(i == STDIN) {
+                        char input[MAXDATASIZE] = {0};
+                        getInput(input);
+										    removeEnter(input);
+                        if(strcmp(input, "quit") == 0) {
+                          for(int j = 0; j <= fdmax ; j++) {
+                            if(j != listener && j != STDIN)
+                              sendData(j, "server_quit");
+                          }
+                          active = false;
+                          exit(-1);
+                        }
+
+                      }
+
                       else	{
                       char buf[MAXDATASIZE];
                       memset (buf,'\0',MAXDATASIZE);
-                      if (/*is_main &&*/ (nbytes = recv(i, buf, sizeof buf, 0)) <= 0 ) {
+                      if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0 ) {
                           // got error or connection closed by client
                           if (nbytes == 0) {
                               util.prints("selectserver: socket ");
@@ -147,7 +161,7 @@ void Server::run()
                                     index = z;
                                }
                           }
-                          user_list.erase(user_list.begin() + index);
+                          user_list[index]->set_deleted();
 
                        }
                        else {
@@ -255,6 +269,25 @@ void Server::log_process(char* myfifo)
     }
 
   }
+}
+
+void Server::getInput(char *buf)	{
+		memset (buf,'\0',MAXDATASIZE);
+		int sock;
+		if((sock = read(STDIN_FILENO, buf, MAXDATASIZE)) < 0)
+				cout << "Err::in reading from console." << endl;
+}
+
+void Server::removeEnter(char *buf)	{
+		char *pos;
+		if ((pos = strchr(buf, '\n')) != NULL)
+				*pos = '\0';
+}
+
+void Server::sendData(int sockfd, char* message)	{
+		if( send(sockfd , message , strlen(message) , 0) < 0) {
+        return;
+  	}
 }
 
 Server::~Server()
