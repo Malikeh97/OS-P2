@@ -13,6 +13,11 @@
 #define IDLE  0
 #define BUSY  1
 
+struct File{
+  int total_point;
+  std::string path;
+};
+
 class Worker {
   public:
     Worker(int index);

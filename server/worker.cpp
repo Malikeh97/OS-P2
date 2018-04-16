@@ -30,7 +30,6 @@ void Worker::set_req(User* cur_req, int cur_req_index) {
    while ((ent = readdir (dir)) != NULL){
      if(strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0 && strcmp(ent->d_name, ".DS_Store") != 0) {
        files.push_back(ent->d_name);
-       cout << ent->d_name << endl;//test
      }
    }
    closedir (dir);
@@ -130,23 +129,28 @@ double Worker::calculate_point(string dir) {
         string path = root_folder + "/" + file_list[i];
         if(file_list[i].find(".txt") != -1) {//if file detected
           total_point = calculate_point(path);
-          tmp = path + "/" + util.itos(total_point) ;
-          cout << tmp << endl;//test
+          tmp = path + ":" + util.itos(total_point) ;
         }
         else {//if folder detected recursively traverse through files
           tmp = traverse_folders(path);
         }
         write(pipefd_list[i][1], tmp.c_str(), tmp.length());//write output for the parent
-         exit(EXIT_SUCCESS);
+        exit(EXIT_SUCCESS);
       }
     }
-   //
-   // vector<std::string> calculeted_points;
-   // for (int i = 0; i < file_list.size(); i++) {
-   //   char buffer[MAXDATASIZE] = {0};
-   //   read(pipefd_list[i][0], buffer, MAXDATASIZE);
-   //   calculeted_points.push_back(std::string(buffer));
-   // }
+
+  vector<File> calculated_points;
+  for (int i = 0; i < file_list.size(); i++) {
+     char buffer[MAXDATASIZE] = {0};
+     read(pipefd_list[i][0], buffer, MAXDATASIZE);
+     Util util;
+     const char delimeter= ':';
+     struct File file_point;
+     vector<string> tempo = util.split(string(buffer), delimeter);
+     file_point.path = tempo[0];
+     file_point.total_point = util.mystoi(tempo[1]);
+     calculated_points.push_back(file_point);
+   }
    // return concat_list(points);
    return "hello";
  }
