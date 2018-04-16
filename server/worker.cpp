@@ -75,75 +75,73 @@ void Worker::set_req(User* cur_req, int cur_req_index) {
 //     }
 //     return res;
 // }
-// double calculate_point(std::string dir) {
-//
-//    std::regex  const expr2();
-//    std::regex  const expr3();
-//    std::ifstream my_file(dir);
-//    int total_point = 0;
-//    if(my_file.is_open()) {
-//     std::string str;
-//     while(my_file) {
-//       getline(my_file, str);  // delim defaults to '\n'
-//       if(my_file) {
-//         for(int i = 0; i < cur_req->get_first().size(); i++) {
-//           std::regex  const expr1(cur_req->get_first()[i]);
-//           std::ptrdiff_t const match_count1(std::distance(
-//             std::sregex_iterator(str.begin(), str.end(), expr1),
-//             std::sregex_iterator()));
-//           total_point += match_count1*3;
-//         }
-//
-//         for(int i = 0; i < cur_req->get_second().size(); i++) {
-//           std::regex  const expr2(cur_req->get_second()[i]);
-//           std::ptrdiff_t const match_count2(std::distance(
-//             std::sregex_iterator(str.begin(), str.end(), expr2),
-//             std::sregex_iterator()));
-//           total_point += match_count2*2;
-//         }
-//
-//         for(int i = 0; i < cur_req->get_third().size(); i++) {
-//           std::regex  const expr3(cur_req->get_third()[i]);
-//           std::ptrdiff_t const match_count3(std::distance(
-//             std::sregex_iterator(str.begin(), str.end(), expr3),
-//             std::sregex_iterator()));
-//           total_point += match_count3;
-//         }
-//
-//       }
-//     }
-//       my_file.close();
-//     }
-//    return  (double) total_point/2;
-//  }
-//
- std::string Worker::traverse_folders(std::string root_folder) {//traverse through folders if no file exists, if so calculate the total point of the file
+double Worker::calculate_point(string dir) {
+   ifstream my_file(dir);
+   int total_point = 0;
+   if(my_file.is_open()) {
+    string str;
+    while(my_file) {
+      getline(my_file, str);  // delim defaults to '\n'
+      if(my_file) {
+        for(int i = 0; i < cur_req->get_first().size(); i++) {
+          regex  const expr1(cur_req->get_first()[i]);
+          ptrdiff_t const match_count1(distance(
+            sregex_iterator(str.begin(), str.end(), expr1),
+            sregex_iterator()));
+          total_point += match_count1*6;
+        }
+
+        for(int i = 0; i < cur_req->get_second().size(); i++) {
+          regex  const expr2(cur_req->get_second()[i]);
+          ptrdiff_t const match_count2(distance(
+            sregex_iterator(str.begin(), str.end(), expr2),
+            sregex_iterator()));
+          total_point += match_count2*3;
+        }
+
+        for(int i = 0; i < cur_req->get_third().size(); i++) {
+          regex  const expr3(cur_req->get_third()[i]);
+          ptrdiff_t const match_count3(distance(
+            sregex_iterator(str.begin(), str.end(), expr3),
+            sregex_iterator()));
+          total_point += match_count3*2;
+        }
+
+      }
+    }
+      my_file.close();
+    }
+   return  (double) total_point/2;
+ }
+
+ string Worker::traverse_folders(string root_folder) {//traverse through folders if no file exists, if so calculate the total point of the file
     Util util;
-    std::vector<std::string> file_list;
+    vector<string> file_list;
     open_directory(root_folder + "/", file_list);
 
-   //  int pipefd_list[file_list.size()][2];
-   //  double total_point = 0;
+    int pipefd_list[file_list.size()][2];//unnamed pipes as many as the number of folders
+    double total_point = 0;
+
+    for(int i = 0; i < file_list.size(); i++) {
+      if (pipe(pipefd_list[i]) == -1)
+        cout << "Error in creating pipe"<< endl;
+      if(fork() == 0) {
+        string tmp;
+        string path = root_folder + "/" + file_list[i];
+        if(file_list[i].find(".txt") != -1) {//if file detected
+          total_point = calculate_point(path);
+          tmp = path + "/" + util.itos(total_point) ;
+          cout << tmp << endl;//test
+        }
+        else {//if folder detected recursively traverse through files
+          tmp = traverse_folders(path);
+        }
+        write(pipefd_list[i][1], tmp.c_str(), tmp.length());//write output for the parent
+         exit(EXIT_SUCCESS);
+      }
+    }
    //
-   //  for(int i = 0; i < file_list.size(); i++) {
-   //    if (pipe(pipefd_list[i]) == -1)
-   //     std::cout << "Error in creating pipe"<< std::endl;
-   //    if(fork() == 0) {
-   //      std::string tmp;
-   //      std::string path = root_folder + "/" + file_list[i];
-   //      if(file_list[i].find(".txt") != -1) {
-   //        total_point = calculate_point(path);
-   //        tmp = "path: " + path + " point: " + util.itos(total_point);
-   //      }
-   //      else {
-   //        tmp = traverse_folders(path);
-   //      }
-   //      write(pipefd_list[i][1], tmp.c_str(), tmp.length());
-   //      exit(EXIT_SUCCESS);
-   //    }
-   //  }
-   //
-   // std::vector<std::string> calculeted_points;
+   // vector<std::string> calculeted_points;
    // for (int i = 0; i < file_list.size(); i++) {
    //   char buffer[MAXDATASIZE] = {0};
    //   read(pipefd_list[i][0], buffer, MAXDATASIZE);
