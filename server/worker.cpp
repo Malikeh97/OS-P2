@@ -91,7 +91,7 @@ double Worker::calculate_point(string dir) {
         string path = root_folder + "/" + file_list[i];
         if(file_list[i].find(".txt") != -1) {//if file detected
           total_point = calculate_point(path);
-          tmp = path + ":" + util.itos(total_point);
+          tmp = file_list[i] + ":" + util.itos(total_point);
         }
         else {//if folder detected recursively traverse through files
           tmp = traverse_folders(path);
