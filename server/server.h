@@ -5,83 +5,14 @@
 #include <sys/select.h>
 #include <iostream>
 #include "server_socket.h"
-#include <iostream>
 #include <fstream>
+#include <dirent.h>
+#include <regex>
+#include "user.h"
+#include "worker.h"
 
 #define IDLE  0
 #define BUSY  1
-
-class User {
-  public:
-    User(int file_desc, std::string uname, std::vector<std::string> frst_priority,
-    std::vector<std::string> sec_priority, std::vector<std::string> thrd_priority){
-      fd = file_desc;
-      username = uname;
-      first_priority = frst_priority;
-      second_priority = sec_priority;
-      third_priority = thrd_priority;
-    }
-    ~User(){}
-    int get_fd(){return fd;}
-    std::string get_username(){return username;}
-    std::vector<std::string> get_first(){return first_priority;}
-    std::vector<std::string> get_second(){return second_priority;}
-    std::vector<std::string> get_third(){return third_priority;}
-  private:
-    int fd;
-    std::string username;
-    std::vector<std::string> first_priority;
-    std::vector<std::string> second_priority;
-    std::vector<std::string> third_priority;
-};
-
-class Worker {
-  public:
-    Worker(int index) {
-      Util util;
-      //this->pid = f_pid;
-      // if(pid < 0) {
-      //   std::cout << "#Error in creating child process\n";
-      //   exit(-1);
-      // }
-      unnamed_pipe = pipe(pipefds);
-      if (unnamed_pipe != 0) {
-        std::cout << "worker pipe creation error\n";
-        exit(-1);
-      }
-      cur_req = NULL;
-      status = IDLE;
-    }
-    ~Worker();
-    void set_req(User* cur_req, int cur_req_index) {
-      this->cur_req = cur_req;
-      this->cur_req_index = cur_req_index;
-      status = BUSY;
-     }
-    void change_status() {status = (status == IDLE) ? BUSY : IDLE; }
-    pid_t get_id() { return pid; }
-    pid_t get_state() { return status; }
-    int* get_pipefds() { return pipefds; }
-    void set_pid(pid_t new_pid) { pid = new_pid; }
-    void set_user(std::string search_req) {
-      Util util;
-      char delimeter = '-';
-      std::vector<std::string> tokens = util.split(search_req, delimeter);
-      delimeter = ',';
-      std::vector<std::string> frst_priority = util.split(std::string(tokens[2]), delimeter);
-      std::vector<std::string> sec_priority = util.split(std::string(tokens[3]), delimeter);
-      std::vector<std::string> thrd_priority = util.split(std::string(tokens[4]), delimeter);
-      cur_req = new User(0, tokens[1], frst_priority, sec_priority, thrd_priority);
-    }
-  private:
-    int unnamed_pipe;
-    pid_t pid;
-    int pipefds[2];
-    User* cur_req;
-
-    int cur_req_index;
-    int status;
-};
 
 class Server {
 public:
