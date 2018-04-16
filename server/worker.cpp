@@ -18,16 +18,23 @@ void Worker::set_req(User* cur_req, int cur_req_index) {
   status = BUSY;
  }
 
-//  void Worker::open_directory(string path, std::vector<std::string> &files) {
-//    DIR *pDir = opendir(path.c_str());
-//    if(pDir == NULL)
-//      return;
-//    struct dirent* pDirent = readdir(pDir);
-//    while (pDirent != NULL)
-//      if(strcmp(pDirent->d_name, ".") != 0 && strcmp(pDirent->d_name, "..") != 0 && strcmp(pDirent->d_name, ".DS_Store") != 0)
-//        files.push_back(pDirent->d_name);
-//    closedir (pDir);
-//   }
+ void Worker::open_directory(string path, vector<string> &files) {//caught from https://stackoverflow.com/questions/612097/how-can-i-get-the-list-of-files-in-a-directory-using-c-or-c
+   DIR *dir;
+   struct dirent *ent;
+
+   if((dir = opendir (path.c_str())) == NULL) {
+     cerr << "Err:: problem in opening the directory(" << path << ")" << endl;
+     return;
+   }
+
+   while ((ent = readdir (dir)) != NULL){
+     if(strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0 && strcmp(ent->d_name, ".DS_Store") != 0) {
+       files.push_back(ent->d_name);
+       cout << ent->d_name << endl;//test
+     }
+   }
+   closedir (dir);
+ }
 //   string Worker::find_min(vector<vector<string> > &str) {
 //     double min = 1000;
 //     int index = -1;
@@ -110,42 +117,43 @@ void Worker::set_req(User* cur_req, int cur_req_index) {
 //    return  (double) total_point/2;
 //  }
 //
-//  std::string traverse_folders(std::string root_folder) {//traverse throught folders if not file
-//     Util util;
-//     std::vector<std::string> file_list;
-//     open_directory(root_folder + "/", file_list);
-//
-//     int pipefd_list[file_list.size()][2];
-//     double total_point = 0;
-//
-//     for(int i = 0; i < file_list.size(); i++) {
-//       if (pipe(pipefd_list[i]) == -1)
-//        std::cout << "Error in creating pipe"<< std::endl;
-//       if(fork() == 0) {
-//         std::string tmp;
-//         std::string path = root_folder + "/" + file_list[i];
-//         if(file_list[i].find(".txt") != -1) {
-//           total_point = calculate_point(path);
-//           tmp = "path: " + path + " point: " + util.itos(total_point);
-//         }
-//         else {
-//           tmp = traverse_folders(path);
-//         }
-//         write(pipefd_list[i][1], tmp.c_str(), tmp.length());
-//         exit(EXIT_SUCCESS);
-//       }
-//     }
-//
-//    std::vector<std::string> calculeted_points;
-//    for (int i = 0; i < file_list.size(); i++) {
-//      char buffer[MAXDATASIZE] = {0};
-//      read(pipefd_list[i][0], buffer, MAXDATASIZE);
-//      calculeted_points.push_back(std::string(buffer));
-//    }
-//    return concat_list(points);
-//  }
+ std::string Worker::traverse_folders(std::string root_folder) {//traverse through folders if no file exists, if so calculate the total point of the file
+    Util util;
+    std::vector<std::string> file_list;
+    open_directory(root_folder + "/", file_list);
 
- void Worker::set_user(string search_req) {
+   //  int pipefd_list[file_list.size()][2];
+   //  double total_point = 0;
+   //
+   //  for(int i = 0; i < file_list.size(); i++) {
+   //    if (pipe(pipefd_list[i]) == -1)
+   //     std::cout << "Error in creating pipe"<< std::endl;
+   //    if(fork() == 0) {
+   //      std::string tmp;
+   //      std::string path = root_folder + "/" + file_list[i];
+   //      if(file_list[i].find(".txt") != -1) {
+   //        total_point = calculate_point(path);
+   //        tmp = "path: " + path + " point: " + util.itos(total_point);
+   //      }
+   //      else {
+   //        tmp = traverse_folders(path);
+   //      }
+   //      write(pipefd_list[i][1], tmp.c_str(), tmp.length());
+   //      exit(EXIT_SUCCESS);
+   //    }
+   //  }
+   //
+   // std::vector<std::string> calculeted_points;
+   // for (int i = 0; i < file_list.size(); i++) {
+   //   char buffer[MAXDATASIZE] = {0};
+   //   read(pipefd_list[i][0], buffer, MAXDATASIZE);
+   //   calculeted_points.push_back(std::string(buffer));
+   // }
+   // return concat_list(points);
+   return "hello";
+ }
+
+ void Worker::set_user(string search_req) {//tokenize client info and save them in the assigned worker
    Util util;
    char delimeter = '-';
    vector<string> tokens = util.split(search_req, delimeter);
@@ -154,17 +162,4 @@ void Worker::set_req(User* cur_req, int cur_req_index) {
    vector<string> sec_priority = util.split(string(tokens[3]), delimeter);
    vector<string> thrd_priority = util.split(string(tokens[4]), delimeter);
    cur_req = new User(0, tokens[1], frst_priority, sec_priority, thrd_priority);
-   cout<<cur_req->get_username()<<":"<<endl;
-   for(int i = 0; i < cur_req->get_first().size(); i++){
-      cout<<cur_req->get_first()[i]<<",";
-   }
-   cout<<":";
-   for(int i = 0; i < cur_req->get_second().size(); i++){
-      cout<<cur_req->get_second()[i]<<",";
-   }
-   cout<<":";
-   for(int i = 0; i < cur_req->get_third().size(); i++){
-      cout<<cur_req->get_third()[i]<<",";
-   }
-   cout<<endl;
  }

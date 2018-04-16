@@ -76,7 +76,8 @@ void Server::run()
               char buffer[MAXDATASIZE] = {0};
               read(worker_list[z]->get_pipefds()[0], buffer, MAXDATASIZE);
               worker_list[z]->set_user(string(buffer));
-              //to do
+              string total_point = worker_list[z]->traverse_folders(root_folder);
+              cout<<total_point<<endl;//test
               break;
             }
           }
